@@ -1,36 +1,19 @@
 compile:
-	gcc -o cliente cliente.c -lws2_32
-	gcc -o balanceador balanceador.c -lws2_32
-	gcc -o servidor servidor.c -lws2_32
+	g++ -Wall -Wextra -g3 ./src/load_balancer.cpp -o ./bin/load_balancer.exe -lws2_32
+	g++ -Wall -Wextra -g3 ./src/server.cpp -o ./bin/server.exe -lws2_32
+	g++ -Wall -Wextra -g3 ./src/client.cpp -o ./bin/client.exe -lws2_32
 
-balanceador:
-	./balanceador
+server1:
+	./bin/server.exe 8081
 
-servidor1:
-	./servidor 9090
+server2:
+	./bin/server.exe 8082
 
-servidor2:
-	./servidor 9091
+server3:
+	./bin/server.exe 8083
 
-cliente:
-	./cliente	
+loadbalancer:
+	./bin/load_balancer.exe
 
-c:
-	g++ -Wall -Wextra -g3 load_balancer.cpp -o load_balancer.exe -lws2_32
-	g++ -Wall -Wextra -g3 server.cpp -o server.exe -lws2_32
-	g++ -Wall -Wextra -g3 client.cpp -o client.exe -lws2_32
-
-r1:
-	server.exe 8081
-
-r2:
-	server.exe 8082
-
-r3:
-	server.exe 8083
-
-r4:
-	load_balancer.exe
-
-r5:
-	client.exe 127.0.0.1 8080
+client:
+	./bin/client.exe 127.0.0.1 8080

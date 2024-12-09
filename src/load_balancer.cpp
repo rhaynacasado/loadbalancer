@@ -73,7 +73,7 @@ int main() {
     std::cout << "Load Balancer is running on port " << PORT << "..." << std::endl;
 
     // List of servers
-    std::vector<std::string> serverList = {"192.168.1.101:8081", "192.168.1.102:8082", "192.168.1.103:8083"};
+    std::vector<std::string> serverList = {"127.0.0.1:8081", "127.0.0.1:8082", "127.0.0.1:8083"};
     int roundRobinIndex = 0;
 
     while (true) {

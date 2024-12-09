@@ -30,6 +30,8 @@ void connectToServer(SOCKET clientSocket, const std::string& serverAddress, int 
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.s_addr = inet_addr(serverAddress.c_str());
 
+    std::cout << "Attempting to connect to " << serverAddress << ":" << port << std::endl;
+
     if (connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "Connection to server failed. Error: " << WSAGetLastError() << std::endl;
         closesocket(clientSocket);
@@ -37,6 +39,37 @@ void connectToServer(SOCKET clientSocket, const std::string& serverAddress, int 
         exit(EXIT_FAILURE);
     }
     std::cout << "Connected to server: " << serverAddress << ":" << port << std::endl;
+}
+
+int communicateWithLoadBalancer(SOCKET clientSocket) {
+    // Send a message to the load balancer
+    std::string message = "Hello from client!";
+    send(clientSocket, message.c_str(), message.length(), 0);
+
+    // Receive response from the load balancer
+    char buffer[BUFFER_SIZE];
+    int bytesReceived = recv(clientSocket, buffer, BUFFER_SIZE, 0);
+
+    if (bytesReceived > 0) {
+        buffer[bytesReceived] = '\0';
+        std::cout << "Load balancer response: " << buffer << std::endl;
+    } else {
+        std::cerr << "Failed to receive response from load balancer." << std::endl;
+    }
+
+    closesocket(clientSocket);
+
+    int portserver = 0;
+    std::string bufferStr(buffer);
+    size_t colonPos = bufferStr.find(':');
+    if (colonPos != std::string::npos) {
+        std::string ip = bufferStr.substr(0, colonPos);
+        portserver = std::stoi(bufferStr.substr(colonPos + 1));  // Converte a parte da porta para int
+    } else {
+        std::cerr << "Formato inválido" << std::endl;
+    }
+
+    return portserver;
 }
 
 void communicateWithServer(SOCKET clientSocket) {
@@ -75,7 +108,16 @@ int main(int argc, char* argv[]) {
     // Connect to load balancer
     connectToServer(clientSocket, loadBalancerIP, port);
 
-    // Communicate with the server
+    // Communicate with load balancer
+    int portserver = communicateWithLoadBalancer(clientSocket);
+
+    // Create socket
+    clientSocket = createSocket();
+
+    // Connect to server
+    connectToServer(clientSocket, loadBalancerIP, portserver);
+
+    // Communicate with server
     communicateWithServer(clientSocket);
 
     WSACleanup();
